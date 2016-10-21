@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 /**
- * Created by jjh35 on 10/17/2016.
+ * Created by Jake Schott
  * This class provides a player class for MainActivity
  */
 public class Players {
