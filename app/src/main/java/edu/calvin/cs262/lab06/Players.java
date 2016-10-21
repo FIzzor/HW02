@@ -5,28 +5,27 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 /**
- * Players forecast object (POJO), one per day, based on openweathermap's RESTful API.
- * Based on Deitel's WeatherViewer app (chapter 17).
- *
- * @author deitel
- * @author kvlinden
- * @version spring, 2017
+ * Created by jjh35 on 10/17/2016.
+ * This class provides a player class for MainActivity
  */
 public class Players {
-
-    private String emailaddress, name;
+    private String name, email;
     private int id;
 
-    public Players(int id, String emailaddress, String name) {
+    public Players( int id, String email, String name) {
         this.id = id;
-        this.emailaddress = emailaddress;
+        this.email = email;
         this.name = name;
     }
 
-    public String getId() { return id + ""; }
-    public String getEmailaddress() {
-        return emailaddress;
+    public int getID()
+    {
+        return id;
     }
+    public String getEmail() {
+        return email;
+    }
+
     public String getName() {
         return name;
     }

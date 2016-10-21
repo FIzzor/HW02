@@ -1,8 +1,6 @@
 package edu.calvin.cs262.lab06;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +22,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,9 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private EditText idText;
     private Button fetchButton;
 
-    private List<Players> playersList = new ArrayList<>();
-    private ListView itemsListView;
+    private NumberFormat numberFormat = NumberFormat.getInstance();
 
+    private List<Players> PlayersList = new ArrayList<>();
+    private ListView itemsListView;
 
     /* This formater can be used as follows to format temperatures for display.
      *     numberFormat.format(SOME_DOUBLE_VALUE)
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        idText = (EditText) findViewById(R.id.idText);
+        idText = (EditText) findViewById(R.id.id_value);
         fetchButton = (Button) findViewById(R.id.fetchButton);
         itemsListView = (ListView) findViewById(R.id.weatherListView);
 
@@ -77,22 +77,27 @@ public class MainActivity extends AppCompatActivity {
                 new GetWeatherTask().execute(createURL(idText.getText().toString()));
             }
         });
-
-        //This just changes the header color
-        ColorDrawable colorDrawable = new ColorDrawable(Color.parseColor("#ff0000"));
-        getSupportActionBar().setBackgroundDrawable(colorDrawable);
     }
 
     /**
      * Formats a URL for the webservice specified in the string resources.
      *
-     * @param id the target name
+     * @param id the id of the player
      * @return URL formatted for openweathermap.com
      */
     private URL createURL(String id) {
+        String urlString;
+        Log.i( "the id is ", id );
         try {
-            String urlString = getString(R.string.web_service_url) +
-                    URLEncoder.encode(id, "UTF-8");
+            if ( id.equals( "" ) )
+            {
+                urlString = "http://cs262.cs.calvin.edu:8089/monopoly/players";
+            }
+            else
+            {
+                urlString = "http://cs262.cs.calvin.edu:8089/monopoly/player/" + id;
+            }
+
             return new URL(urlString);
         } catch (Exception e) {
             Toast.makeText(this, getString(R.string.connection_error), Toast.LENGTH_SHORT).show();
@@ -115,10 +120,10 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Inner class for GETing the current weather data from openweathermap.org asynchronously
      */
-    private class GetWeatherTask extends AsyncTask<URL, Void, JSONObject> {
+    private class GetWeatherTask extends AsyncTask<URL, Void, JSONArray> {
 
         @Override
-        protected JSONObject doInBackground(URL... params) {
+        protected JSONArray doInBackground(URL... params) {
             HttpURLConnection connection = null;
             StringBuilder result = new StringBuilder();
             try {
@@ -130,7 +135,14 @@ public class MainActivity extends AppCompatActivity {
                     while ((line = reader.readLine()) != null) {
                         result.append(line);
                     }
-                    return new JSONObject(result.toString());
+                    // The following if statement will convert jsonobject format to jsonarray format
+                    if ( result.toString().substring(0, 1).equals( "{" ) )
+                    {
+                        String jsonString = result.toString();
+                        jsonString = "[" + jsonString + "]";
+                        return new JSONArray( jsonString );
+                    }
+                    return new JSONArray(result.toString());
                 } else {
                     throw new Exception();
                 }
@@ -143,39 +155,48 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(JSONObject weather) {
+        protected void onPostExecute(JSONArray weather) {
             if (weather != null) {
-                Log.d(TAG, weather.toString());
+                //Log.d(TAG, weather.toString());
                 convertJSONtoArrayList(weather);
                 MainActivity.this.updateDisplay();
             } else {
-                Toast.makeText(MainActivity.this, getString(R.string.connection_error), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "invalid id", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     /**
-     * Converts the JSON weather output data to an arraylist suitable for a listview adapter
+     * Converts the JSON weather forecast data to an arraylist suitable for a listview adapter
      *
-     * @param output
+     * @param players
      */
-    private void convertJSONtoArrayList(JSONObject output) {
-        playersList.clear(); // clear old weather data
-        try {
-            JSONArray list = output.getJSONArray("list");
-            for (int i = 0; i < list.length(); i++) {
-                JSONObject player = list.getJSONObject(i);
-                int info = player.getInt("id");
-                String email = player.getString("emailaddress");
-                String name = player.getString("name");
-                //JSONObject weather = day.getJSONArray("weather").getJSONObject(0);
-                playersList.add(new Players(
-                        info,
-                        email,
-                        name));
+    private void convertJSONtoArrayList(JSONArray players) {
+        PlayersList.clear(); // clear old weather data
+
+        for ( int i = 0 ; i < players.length(); i++ )
+        {
+            try
+            {
+                JSONObject player = players.getJSONObject(i);
+                PlayersList.add(new Players(
+                        player.getInt( "id" ),
+                        player.getString("emailaddress"),
+                        player.getString("name")));
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+            catch (JSONException e) {
+
+                try {
+                    JSONObject player = players.getJSONObject(i);
+                    PlayersList.add(new Players(
+                            player.getInt("id"),
+                            player.getString("emailaddress"),
+                            "no name given"));
+                }
+                catch(JSONException e2){
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -183,21 +204,22 @@ public class MainActivity extends AppCompatActivity {
      * Refresh the weather data on the forecast ListView through a simple adapter
      */
     private void updateDisplay() {
-        if (playersList == null) {
+        //Log.i( "update display ", PlayersList.toString() );
+        if (PlayersList == null) {
             Toast.makeText(MainActivity.this, getString(R.string.connection_error), Toast.LENGTH_SHORT).show();
         }
         ArrayList<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
-        for (Players item : playersList) {
+        for (Players item : PlayersList) {
             HashMap<String, String> map = new HashMap<String, String>();
-            map.put("id", item.getId());
-            map.put("emailaddress", item.getEmailaddress());
-            map.put("name",item.getName().toString());
+            map.put("id", Integer.toString( item.getID() ));
+            map.put("emailaddress", item.getEmail());
+            map.put("name", item.getName());
             data.add(map);
         }
 
         int resource = R.layout.activity_players;
-        String[] from = {"id", "emailaddress","name"};
-        int[] to = {R.id.dayTextView, R.id.summaryTextView, R.id.minTextView, R.id.maxTextView};
+        String[] from = {"id", "emailaddress", "name"};
+        int[] to = {R.id.numberTextView, R.id.emailTextView, R.id.nameTextView};
 
         SimpleAdapter adapter = new SimpleAdapter(this, data, resource, from, to);
         itemsListView.setAdapter(adapter);

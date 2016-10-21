@@ -17,11 +17,12 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/idText"
+            android:id="@+id/id_value"
             style="@style/normalText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="@string/id_value" />
 
         <Button
             android:id="@+id/fetchButton"
@@ -48,8 +49,7 @@
             android:layout_weight="1"
             android:scrollIndicators="right"
             android:scrollingCache="true"
-            android:smoothScrollbar="true"
-            android:headerDividersEnabled="false" />
+            android:smoothScrollbar="true" />
 
     </LinearLayout>
 

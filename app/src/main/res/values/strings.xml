@@ -1,17 +1,17 @@
 <resources>
-    <string name="app_name">HW02 - Monoopoly Players</string>
-    <string name="web_service_url">http://cs262.cs.calvin.edu:8089/monopoly/players/</string>
+    <string name="app_name">HW02 - Monopoly Players</string>
+    <string name="web_service_url">http://api.openweathermap.org/data/2.5/forecast/daily?q=</string>
     <string name="openweather_api_key">8301442678d36413b4e3a04d016deee7</string>
     <string name="openweather_units">imperial</string>
     <string name="openweather_count">7</string>
-    <string name="city_value">""</string>
+    <string name="id_value"></string>
     <string name="fetch_button_label">Fetch</string>
     <string name="connection_error">Failed to connect to service...</string>
-    <string name="day_text">Day</string>
-    <string name="summary_text">Summary</string>
+    <string name="number_text">1.</string>
+    <string name="name_text">name</string>
     <string name="min_label_text">Low:</string>
     <string name="min_text">Min Temp</string>
     <string name="max_label_text">High:</string>
     <string name="max_text">Max Temp</string>
-    <string name="title_activity_players">Players</string>
+    <string name="email_text">email</string>
 </resources>
